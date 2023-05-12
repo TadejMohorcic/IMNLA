@@ -1,4 +1,4 @@
-function [x,res] = givens_lanczos(A,b,x0,tol,k)
+function [x,res,c,s,af,bt,f,g,h] = givens_lanczos(A,b,x0,tol,k)
 % function [x,res] = givens_lanczos(A,b,x0,tol,k) išče rešitev sistema Ax =
 % b s pomočjo direktnega Lanczosovega algoritma z Givensovimi rotacijami.
 % Vhodni podatki so matrika A, rešitev b, začetni približek x0, toleranca
@@ -37,7 +37,7 @@ if k == 1
     p(:,1) = v(:,1)/f;
     ksi = norm(r0);
     x = x0 + p(:,1)*ksi;
-    res(1) = norm(r0);
+    res(1) = -s(1)*norm(r0);
     return
 
 % tudi če je k = 2 se izvede po svoje
@@ -60,7 +60,7 @@ elseif k == 2
     p(:,1) = v(:,1)/f;
     ksi = c(1)*norm(r0);
     x = x0 + p(:,1)*ksi;
-    res(1) = norm(r0);
+    res(1) = -s(1)*norm(r0);
 
     v(:,2) = z/bt(1);
 
@@ -82,7 +82,7 @@ elseif k == 2
     ksi = s(1)*norm(r0);
 
     x = x + p(:,2)*ksi;
-    res(2) = -s(1)*res(1);
+    res(2) = abs(res(1)/(s(1)*bt(1) + c(1)*af(2)))*bt(2);
     return
 
 else
@@ -104,7 +104,7 @@ else
     p(:,1) = v(:,1)/f;
     ksi = c(1)*norm(r0);
     x = x0 + p(:,1)*ksi;
-    res(1) = norm(r0);
+    res(1) = -s(1)*norm(r0);
 
     v(:,2) = z/bt(1);
 
@@ -124,7 +124,8 @@ else
     p(:,2) = (v(:,2) - g*p(:,1))/f;
     ksi = (s(1)*c(2)*ksi)/c(1);
     x = x + p(:,2)*ksi;
-    res(2) = -s(1)*res(1);
+    res(2) = abs(res(1)/(s(1)*bt(1) + c(1)*af(2)))*bt(2);
+    y = s(1)*norm(r0);
 
     v(:,3) = z/bt(2);
     %- k > 2 ---------------
@@ -144,7 +145,8 @@ else
 
         p(:,i) = (v(:,i) - g*p(:,i-1) - h*p(:,i-2))/f;
         ksi = (s(i-1)*ksi)/c(i-1);
-        res(i) = -s(i-1)*res(i-1);
+        y = s(i-1)*y;
+        res(i) = abs(y/f)*bt(i);
         if res(i) < tol || i == k
             x = x + p(:,i)*ksi;
             return
